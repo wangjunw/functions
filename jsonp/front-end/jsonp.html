@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>jsonp跨域</title>
+    </head>
+    <body>
+        <h1>jsonp跨域</h1>
+        <script type="text/javascript">
+            /**
+             * 因为不在同一端口下，所以ajax请求跨域了
+             */
+            // function ajaxFn() {
+            //     var xhr;
+            //     if (window.XMLHttpRequest) {
+            //         xhr = new XMLHttpRequest();
+            //     } else {
+            //         xhr = new ActiveXObject('Microsoft.XMLHTTP');
+            //     }
+            //     xhr.open('GET', 'http://localhost:8888', true);
+            //     xhr.send();
+            //     xhr.onreadystatechange = () => {
+            //         if (xhr.readyState === 4) {
+            //             if (xhr.status === 200) {
+            //                 console.log('获取到的数据：', xhr.responseText);
+            //             } else {
+            //                 console.log('服务器响应失败');
+            //             }
+            //         } else {
+            //             console.log('请求失败');
+            //         }
+            //     };
+            // }
+            // ajaxFn();
+
+            /**
+             * 用jsonp实现，服务端也要做处理
+             */
+            (function(global) {
+                var id = 0;
+                var head = document.getElementsByTagName('head')[0];
+                function jsonp(options) {
+                    if (!options || !options.url) {
+                        return;
+                    }
+                    // 创建script标签，以及使用jsonp时所需的属性
+                    var scriptNode = document.createElement('script'),
+                        data = options.data || {},
+                        url = options.url,
+                        callback = options.callback,
+                        fnName = 'jsonp' + id++;
+                    // 添加回调函数
+                    data['callback'] = fnName;
+
+                    // 拼接url，添加到script标签的src属性上
+                    var params = [];
+                    for (var key in data) {
+                        params.push(
+                            `${encodeURIComponent(key)}=${encodeURIComponent(
+                                data[key]
+                            )}`
+                        );
+                    }
+                    url = url.indexOf('?') > 0 ? url + '&' : url + '?';
+                    url += params.join('&');
+                    scriptNode.src = url;
+
+                    // 传递的是一个匿名函数，要执行的话需要暴露成一个全局的方法
+                    global[fnName] = function(res) {
+                        callback && callback(res);
+                        head.removeChild(scriptNode);
+                        delete global[fnName];
+                    };
+
+                    // 处理出错
+                    scriptNode.onerror = function() {
+                        callback && callback({ error: 'error' });
+                        head.removeChild(scriptNode);
+                        global[fnName] && delete global[fnName];
+                    };
+
+                    // script标签插入head标签
+                    scriptNode.type = 'text/javascript';
+                    head.appendChild(scriptNode);
+                }
+                global.jsonp = jsonp;
+            })(this);
+
+            // 调用jsonp方法
+            jsonp({
+                url: 'http://localhost:8888',
+                data: { id: 1 },
+                callback: function(res) {
+                    console.log(res); //{ data: 'hello' }
+                }
+            });
+        </script>
+    </body>
+</html>
