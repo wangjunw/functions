@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>防抖函数</title>
+    </head>
+    <body>
+        <input type="text" id="search" />
+        <script>
+            let search = document.getElementById('search');
+            search.oninput = debounce(todo, 1000);
+            // 输入框内容改变要去做的事
+            function todo(e) {
+                console.log(e.target.value);
+            }
+            // 防抖函数
+            function debounce(fn, delay = 300) {
+                let timer = null;
+                /**
+                 * 上面代码只有调用时执行一次
+                 * 事件触发的是下面返回的函数，（所以不会每次都初始化timer）
+                 * 所以在下面函数中，this就是输入框本身，同时也有event对象
+                 */
+                return function() {
+                    let context = this;
+                    let args = arguments;
+                    // 如果在指定时间内再次触发，则取消延迟的触发
+                    if (timer) {
+                        clearTimeout(timer);
+                    }
+                    // 如果在指定时间内没有触发，则执行要执行的函数
+                    timer = setTimeout(() => {
+                        // 通过apply方法改变this执行，同时传参
+                        fn.apply(context, args);
+                    }, delay);
+                };
+            }
+        </script>
+    </body>
+</html>
