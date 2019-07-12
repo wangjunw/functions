@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        // 节流方法
+        let throttle = (fn) => {
+            let flag = true;
+            return function () {
+                if (!flag) {
+                    return;
+                }
+                flag = false;
+                setTimeout(() => {
+                    fn.apply(this, arguments);
+                    flag = true;
+                }, 500);
+            }
+        }
+        // 事件触发要执行的方法
+        let say = (e) => {
+            console.log(e.target.innerWidth);
+        }
+        window.addEventListener('resize', throttle(say));
+    </script>
+</body>
+
+</html>
